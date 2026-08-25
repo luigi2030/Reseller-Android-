@@ -1,0 +1,17 @@
+L&M RESELLER PANEL — PROYECTO ANDROID
+
+Este ZIP contiene un proyecto Android Studio/Gradle que envuelve el panel web en una aplicación Android.
+
+Para compilarlo:
+1. Abrí el proyecto en Android Studio o en un IDE Android compatible con Gradle.
+2. Esperá a que Gradle sincronice.
+3. Elegí Build > Build APK(s).
+4. El APK de debug normalmente queda en:
+   app/build/outputs/apk/debug/app-debug.apk
+
+Para instalarlo en el celular:
+- Copiá el APK al teléfono.
+- Abrilo y autorizá la instalación desde esa fuente si Android lo solicita.
+
+Nota:
+Esta versión almacena los datos localmente dentro de la aplicación. No tiene servidor ni sincronización entre dispositivos.

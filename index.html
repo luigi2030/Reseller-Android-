@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e53935">
+<title>L&M Reseller Panel</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d0d0d;color:#fff;font-family:Arial,sans-serif}
+header{background:linear-gradient(135deg,#e53935,#9b111e);padding:18px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:22px}header p{margin:5px 0 0;opacity:.85;font-size:13px}
+main{padding:14px;max-width:800px;margin:auto}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:#191919;border:1px solid #2b2b2b;border-radius:14px;padding:14px;margin-bottom:12px}
+.stat{font-size:25px;font-weight:bold}.muted{color:#aaa;font-size:12px}
+button{border:0;border-radius:10px;padding:11px 13px;background:#e53935;color:#fff;font-weight:bold;cursor:pointer}
+button.secondary{background:#303030}button.green{background:#159447}button.warn{background:#c98600}
+input,select,textarea{width:100%;background:#111;color:#fff;border:1px solid #3a3a3a;border-radius:9px;padding:11px;margin:5px 0 10px}
+label{font-size:12px;color:#bbb}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:110px}
+.client{border-left:4px solid #e53935}.badge{display:inline-block;padding:4px 8px;border-radius:20px;background:#333;font-size:11px;margin:2px}
+.badge.ok{background:#155c35}.badge.exp{background:#713232}.search{margin-bottom:10px}
+.hidden{display:none}.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:12px}.tabs button{white-space:nowrap}
+.small{font-size:11px}.danger{background:#8d1e1e}
+@media(max-width:560px){.grid,.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>📺 L&M Reseller Panel</h1>
+<p>Gestión de clientes y servicios de streaming</p>
+</header>
+<main>
+<div class="grid">
+<div class="card"><div class="stat" id="total">0</div><div class="muted">Clientes</div></div>
+<div class="card"><div class="stat" id="vigentes">0</div><div class="muted">Vigentes</div></div>
+<div class="card"><div class="stat" id="vence">0</div><div class="muted">Vencen en 3 días</div></div>
+<div class="card"><div class="stat" id="expirados">0</div><div class="muted">Vencidos</div></div>
+</div>
+
+<div class="card">
+<h3>➕ Nuevo cliente</h3>
+<div class="row">
+<div><label>Nombre del cliente</label><input id="nombre"></div>
+<div><label>Teléfono</label><input id="telefono" type="tel" placeholder="549381..."></div>
+</div>
+<div class="row">
+<div><label>Servicio / grupo</label><input id="servicio" placeholder="Ej: Servicio 1"></div>
+<div><label>Usuario</label><input id="usuario"></div>
+</div>
+<div class="row">
+<div><label>Contraseña</label><input id="clave" type="text"></div>
+<div><label>Inicio</label><input id="inicio" type="date"></div>
+</div>
+<div><label>Vencimiento</label><input id="vencimiento" type="date"></div>
+<div class="actions">
+<button onclick="guardar()">Guardar cliente</button>
+<button class="secondary" onclick="limpiar()">Limpiar</button>
+</div>
+</div>
+
+<div class="card">
+<h3>👥 Clientes</h3>
+<input class="search" id="buscar" oninput="render()" placeholder="Buscar por nombre, usuario, teléfono o servicio...">
+<div class="tabs">
+<button class="secondary" onclick="filtro='todos';render()">Todos</button>
+<button class="secondary" onclick="filtro='vigentes';render()">Vigentes</button>
+<button class="secondary" onclick="filtro='vencidos';render()">Vencidos</button>
+</div>
+<div id="lista"></div>
+</div>
+
+<div class="card">
+<h3>💬 Mensajes</h3>
+<label>Mensaje de bienvenida</label>
+<textarea id="msgBienvenida" rows="4">¡Hola {nombre}! 👋 Bienvenido/a. Tu servicio {servicio} ya está activo. Usuario: {usuario} | Contraseña: {clave}. Inicio: {inicio} | Vencimiento: {vencimiento}. ¡Gracias por confiar en nosotros!</textarea>
+<label>Mensaje de vencimiento</label>
+<textarea id="msgVencimiento" rows="4">¡Hola {nombre}! 👋 Te avisamos que tu servicio {servicio} vence el {vencimiento}. Si deseas renovarlo, comunicate con nosotros. ¡Gracias!</textarea>
+<button onclick="guardarMensajes()">Guardar mensajes</button>
+</div>
+
+<div class="card">
+<h3>⚙️ Datos</h3>
+<p class="muted">Los datos se guardan localmente en este teléfono. Usa Exportar para hacer una copia.</p>
+<div class="actions">
+<button class="green" onclick="exportar()">Exportar copia</button>
+<button class="secondary" onclick="importar()">Importar copia</button>
+<input id="archivo" type="file" accept=".json" class="hidden" onchange="leerArchivo(event)">
+</div>
+</div>
+</main>
+
+<script>
+let clientes=JSON.parse(localStorage.getItem('lm_clientes')||'[]');
+let filtro='todos', editId=null;
+const $=id=>document.getElementById(id);
+const hoy=()=>new Date().toISOString().slice(0,10);
+function guardarMensajes(){localStorage.setItem('lm_bienvenida',$('msgBienvenida').value);localStorage.setItem('lm_vencimiento',$('msgVencimiento').value);alert('Mensajes guardados.')}
+function cargarMensajes(){if(localStorage.getItem('lm_bienvenida'))$('msgBienvenida').value=localStorage.getItem('lm_bienvenida');if(localStorage.getItem('lm_vencimiento'))$('msgVencimiento').value=localStorage.getItem('lm_vencimiento')}
+function dias(c){return Math.ceil((new Date(c.vencimiento+'T23:59:59')-new Date())/86400000)}
+function estado(c){let d=dias(c);return d<0?'vencido':d<=3?'por_vencer':'vigente'}
+function guardar(){
+let c={id:editId||Date.now(),nombre:$('nombre').value.trim(),telefono:$('telefono').value.trim(),servicio:$('servicio').value.trim()||'Sin grupo',usuario:$('usuario').value.trim(),clave:$('clave').value, inicio:$('inicio').value||hoy(),vencimiento:$('vencimiento').value};
+if(!c.nombre||!c.usuario||!c.clave||!c.vencimiento){alert('Completa nombre, usuario, contraseña y vencimiento.');return}
+let i=clientes.findIndex(x=>x.id===c.id);if(i>=0)clientes[i]=c;else clientes.push(c);
+localStorage.setItem('lm_clientes',JSON.stringify(clientes));editId=null;limpiar();render();
+}
+function limpiar(){['nombre','telefono','servicio','usuario','clave','inicio','vencimiento'].forEach(x=>$(x).value='');$('inicio').value=hoy()}
+function editar(id){let c=clientes.find(x=>x.id===id);if(!c)return;editId=id;Object.keys(c).forEach(k=>{if($(k))$(k).value=c[k]});scrollTo({top:0,behavior:'smooth'})}
+function borrar(id){if(confirm('¿Eliminar este cliente?')){clientes=clientes.filter(x=>x.id!==id);localStorage.setItem('lm_clientes',JSON.stringify(clientes));render()}}
+function plantilla(txt,c){return txt.replaceAll('{nombre}',c.nombre).replaceAll('{servicio}',c.servicio).replaceAll('{usuario}',c.usuario).replaceAll('{clave}',c.clave).replaceAll('{inicio}',c.inicio).replaceAll('{vencimiento}',c.vencimiento)}
+function wa(c,tipo){let txt=plantilla(tipo==='bienvenida'?$('msgBienvenida').value:$('msgVencimiento').value,c);let tel=c.telefono.replace(/\D/g,'');if(!tel){alert('Este cliente no tiene teléfono.');return}window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(txt),'_blank')}
+function render(){
+let q=$('buscar').value.toLowerCase(), arr=clientes.filter(c=>{
+let e=estado(c);let ok=filtro==='todos'||(filtro==='vigentes'&&e!=='vencido')||(filtro==='vencidos'&&e==='vencido');
+return ok&&JSON.stringify(c).toLowerCase().includes(q)
+});
+$('total').textContent=clientes.length;$('vigentes').textContent=clientes.filter(c=>estado(c)!=='vencido').length;$('vence').textContent=clientes.filter(c=>dias(c)>=0&&dias(c)<=3).length;$('expirados').textContent=clientes.filter(c=>estado(c)==='vencido').length;
+let grupos={};arr.forEach(c=>(grupos[c.servicio]??=[]).push(c));
+$('lista').innerHTML=Object.entries(grupos).map(([g,cs])=>`<div class="card"><b>📁 ${esc(g)}</b>${cs.map(c=>{
+let e=estado(c),d=dias(c);return `<div class="card client"><b>${esc(c.nombre)}</b><br><span class="badge">${esc(c.servicio)}</span><span class="badge ${e==='vencido'?'exp':'ok'}">${e==='vencido'?'Vencido':d===0?'Vence hoy':d+' días'}</span><p class="small">👤 ${esc(c.usuario)}<br>🔑 ${esc(c.clave)}<br>📱 ${esc(c.telefono||'Sin teléfono')}<br>📅 ${c.inicio} → ${c.vencimiento}</p><div class="actions"><button class="green" onclick="wa(clientes.find(x=>x.id===${c.id}),'bienvenida')">Bienvenida</button><button class="warn" onclick="wa(clientes.find(x=>x.id===${c.id}),'vencimiento')">Vencimiento</button><button class="secondary" onclick="editar(${c.id})">Editar</button><button class="danger" onclick="borrar(${c.id})">Eliminar</button></div></div>`}).join('')}</div>`).join('')||'<p class="muted">No hay clientes.</p>';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function exportar(){let data={clientes,mensajes:{bienvenida:$('msgBienvenida').value,vencimiento:$('msgVencimiento').value},fecha:new Date().toISOString()};let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='LM_Reseller_Backup.json';a.click()}
+function importar(){$('archivo').click()}
+function leerArchivo(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(Array.isArray(d.clientes)){clientes=d.clientes;localStorage.setItem('lm_clientes',JSON.stringify(clientes))}if(d.mensajes){$('msgBienvenida').value=d.mensajes.bienvenida||$('msgBienvenida').value;$('msgVencimiento').value=d.mensajes.vencimiento||$('msgVencimiento').value;guardarMensajes()}render();alert('Copia importada.')}catch(err){alert('Archivo inválido.')}};r.readAsText(f)}
+cargarMensajes();limpiar();render();
+</script>
+</body>
+</html>
