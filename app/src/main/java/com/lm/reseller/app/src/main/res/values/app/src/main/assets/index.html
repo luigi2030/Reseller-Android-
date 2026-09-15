@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&M Reseller Panel</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    background:#101010;
+    color:#fff;
+    padding-bottom:30px;
+}
+
+header{
+    background:linear-gradient(135deg,#9b111e,#e53935);
+    padding:22px 15px;
+    text-align:center;
+    box-shadow:0 3px 10px #000;
+}
+
+header h1{
+    font-size:25px;
+}
+
+header p{
+    margin-top:5px;
+    opacity:.9;
+}
+
+.container{
+    width:94%;
+    max-width:700px;
+    margin:15px auto;
+}
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.card{
+    background:#1d1d1d;
+    border-radius:12px;
+    padding:15px;
+    text-align:center;
+    border:1px solid #333;
+}
+
+.card strong{
+    display:block;
+    font-size:25px;
+    margin-bottom:5px;
+}
+
+.red{
+    color:#ff5252;
+}
+
+.green{
+    color:#4caf50;
+}
+
+.yellow{
+    color:#ffc107;
+}
+
+.gray{
+    color:#aaa;
+}
+
+.section{
+    background:#1b1b1b;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:15px;
+    border:1px solid #333;
+}
+
+.section h2{
+    font-size:19px;
+    margin-bottom:12px;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #444;
+    background:#292929;
+    color:white;
+    font-size:15px;
+}
+
+textarea{
+    min-height:80px;
+    resize:vertical;
+}
+
+button{
+    border:0;
+    border-radius:8px;
+    padding:11px 14px;
+    font-weight:bold;
+    cursor:pointer;
+    margin:3px;
+}
+
+.btn-red{
+    background:#e53935;
+    color:white;
+}
+
+.btn-green{
+    background:#25d366;
+    color:white;
+}
+
+.btn-yellow{
+    background:#ffc107;
+    color:#111;
+}
+
+.btn-gray{
+    background:#444;
+    color:white;
+}
+
+.btn-blue{
+    background:#1976d2;
+    color:white;
+}
+
+.client{
+    background:#252525;
+    border-radius:10px;
+    padding:14px;
+    margin-top:10px;
+    border-left:5px solid #777;
+}
+
+.client.active{
+    border-left-color:#4caf50;
+}
+
+.client.expiring{
+    border-left-color:#ffc107;
+}
+
+.client.expired{
+    border-left-color:#e53935;
+}
+
+.client h3{
+    margin-bottom:8px;
+}
+
+.client p{
+    margin:5px 0;
+    color:#ccc;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.badge.active{
+    background:#1b5e20;
+    color:#a5d6a7;
+}
+
+.badge.expiring{
+    background:#795500;
+    color:#ffe082;
+}
+
+.badge.expired{
+    background:#7f1d1d;
+    color:#ffcdd2;
+}
+
+.actions{
+    margin-top:10px;
+}
+
+.service-title{
+    color:#ff5252;
+    font-size:18px;
+    margin-top:18px;
+    border-bottom:1px solid #444;
+    padding-bottom:6px;
+}
+
+.empty{
+    text-align:center;
+    color:#888;
+    padding:20px;
+}
+
+.small{
+    font-size:12px;
+    color:#aaa;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔴 L&M RESELLER PANEL</h1>
+    <p>Gestión de clientes y servicios</p>
+</header>
+
+<div class="container">
+
+    <div class="dashboard">
+        <div class="card">
+            <strong id="total">0</strong>
+            <span>Total clientes</span>
+        </div>
+
+        <div class="card">
+            <strong id="active" class="green">0</strong>
+            <span>Activos</span>
+        </div>
+
+        <div class="card">
+            <strong id="expiring" class="yellow">0</strong>
+            <span>Vencen pronto</span>
+        </div>
+
+        <div class="card">
+            <strong id="expired" class="red">0</strong>
+            <span>Vencidos</span>
+        </div>
+    </div>
+
+    <div class="section">
+
+        <h2>➕ Agregar cliente</h2>
+
+        <input id="name" type="text" placeholder="Nombre del cliente">
+
+        <input id="phone" type="tel" placeholder="Teléfono">
+
+        <input id="service" type="text" placeholder="Servicio / Plataforma">
+
+        <input id="username" type="text" placeholder="Usuario">
+
+        <input id="password" type="text" placeholder="Contraseña">
+
+        <label class="small">Fecha de inicio</label>
+        <input id="start" type="date">
+
+        <label class="small">Fecha de vencimiento</label>
+        <input id="expiration" type="date">
+
+        <button class="btn-red" onclick="saveClient()">
+            💾 Guardar cliente
+        </button>
+
+        <button class="btn-gray" onclick="clearForm()">
+            Limpiar
+        </button>
+
+    </div>
+
+    <div class="section">
+
+        <h2>🔎 Buscar clientes</h2>
+
+        <input
+            id="search"
+            type="text"
+            placeholder="Buscar por nombre, teléfono o usuario..."
+            oninput="renderClients()"
+        >
+
+        <select id="filter" onchange="renderClients()">
+            <option value="all">Todos</option>
+            <option value="active">Activos</option>
+            <option value="expiring">Vencen en 3 días</option>
+            <option value="expired">Vencidos</option>
+        </select>
+
+    </div>
+
+    <div class="section">
+
+        <h2>📋 Clientes</h2>
+
+        <div id="clients"></div>
+
+    </div>
+
+    <div class="section">
+
+        <h2>💬 Mensajes de WhatsApp</h2>
+
+        <label class="small">Mensaje de bienvenida</label>
+
+        <textarea id="welcomeMessage">Hola {nombre}, bienvenido/a a L&M. Tu servicio {servicio} ya está activo. ¡Gracias por elegirnos!</textarea>
+
+        <label class="small">Mensaje de vencimiento</label>
+
+        <textarea id="expirationMessage">Hola {nombre}, te informamos que tu servicio {servicio} está próximo a vencer. Comunícate con nosotros para renovarlo.</textarea>
+
+        <button class="btn-green" onclick="saveMessages()">
+            💾 Guardar mensajes
+        </button>
+
+    </div>
+
+    <div class="section">
+
+        <h2>💾 Copia de seguridad</h2>
+
+        <button class="btn-blue" onclick="exportData()">
+            Exportar clientes
+        </button>
+
+        <button class="btn-gray" onclick="document.getElementById('importFile').click()">
+            Importar clientes
+        </button>
+
+        <input
+            id="importFile"
+            type="file"
+            accept=".json"
+            style="display:none"
+            onchange="importData(event)"
+        >
+
+    </div>
+
+</div>
+
+<script>
+
+let clients = JSON.parse(localStorage.getItem("lm_clients") || "[]");
+
+let editingId = null;
+
+function saveClient(){
+
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const service = document.getElementById("service").value.trim();
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const start = document.getElementById("start").value;
+    const expiration = document.getElementById("expiration").value;
+
+    if(!name || !service || !expiration){
+        alert("Completa al menos el nombre, servicio y vencimiento.");
+        return;
+    }
+
+    const client = {
+        id: editingId || Date.now(),
+        name,
+        phone,
+        service,
+        username,
+        password,
+        start,
+        expiration
+    };
+
+    if(editingId){
+
+        const index = clients.findIndex(c => c.id === editingId);
+
+        if(index !== -1){
+            clients[index] = client;
+        }
+
+        editingId = null;
+
+    }else{
+
+        clients.push(client);
+
+    }
+
+    localStorage.setItem("lm_clients",JSON.stringify(clients));
+
+    clearForm();
+
+    renderClients();
+
+    alert("Cliente guardado correctamente.");
+
+}
+
+function clearForm(){
+
+    document.getElementById("name").value="";
+    document.getElementById("phone").value="";
+    document.getElementById("service").value="";
+    document.getElementById("username").value="";
+    document.getElementById("password").value="";
+    document.getElementById("start").value="";
+    document.getElementById("expiration").value="";
+
+    editingId=null;
+}
+
+function getStatus(expiration){
+
+    const today = new Date();
+
+    today.setHours(0,0,0,0);
+
+    const exp = new Date(expiration + "T00:00:00");
+
+    const diff = Math.ceil(
+        (exp - today) / (1000*60*60*24)
+    );
+
+    if(diff < 0){
+        return {
+            type:"expired",
+            text:"VENCIDO",
+            days:diff
+        };
+    }
+
+    if(diff <= 3){
+        return {
+            type:"expiring",
+            text:"VENCE PRONTO",
+            days:diff
+        };
+    }
+
+    return {
+        type:"active",
+        text:"ACTIVO",
+        days:diff
+    };
+}
+
+function renderClients(){
+
+    const container = document.getElementById("clients");
+
+    const search = document
+        .getElementById("search")
+        .value
+        .toLowerCase();
+
+    const filter = document.getElementById("filter").value;
+
+    let filtered = clients.filter(c => {
+
+        const status = getStatus(c.expiration);
+
+        const text = (
+            c.name + " " +
+            c.phone + " " +
+            c.username + " " +
+            c.service
+        ).toLowerCase();
+
+        const matchesSearch = text.includes(search);
+
+        const matchesFilter =
+            filter === "all" ||
+            filter === status.type;
+
+        return matchesSearch && matchesFilter;
+
+    });
+
+    updateDashboard();
+
+    if(filtered.length === 0){
+
+        container.innerHTML =
+            '<div class="empty">No hay clientes para mostrar.</div>';
+
+        return;
+    }
+
+    const groups = {};
+
+    filtered.forEach(client => {
+
+        if(!groups[client.service]){
+            groups[client.service] = [];
+        }
+
+        groups[client.service].push(client);
+
+    });
+
+    container.innerHTML="";
+
+    Object.keys(groups)
+        .sort()
+        .forEach(service => {
+
+            const title = document.createElement("div");
+
+            title.className="service-title";
+
+            title.textContent =
+                "📺 " + service;
+
+            container.appendChild(title);
+
+            groups[service].forEach(client => {
+
+                const status =
+                    getStatus(client.expiration);
+
+                const div =
+                    document.createElement("div");
+
+                div.className =
+                    "client " + status.type;
+
+                let daysText="";
+
+                if(status.type==="expired"){
+                    daysText =
+                        "Vencido hace " +
+                        Math.abs(status.days) +
+                        " día(s)";
+                }
+                else if(status.days===0){
+                    daysText="Vence hoy";
+                }
+                else if(status.days===1){
+                    daysText="Vence mañana";
+                }
+                else{
+                    daysText =
+                        "Faltan " +
+                        status.days +
+                        " días";
+                }
+
+                div.innerHTML = `
+
+                    <h3>${escapeHtml(client.name)}</h3>
+
+                    <span class="badge ${status.type}">
+                        ${status.text}
+                    </span>
+
+                    <p>📱 ${escapeHtml(client.phone || "-")}</p>
+
+                    <p>👤 Usuario:
+                        ${escapeHtml(client.username || "-")}
+                    </p>
+
+                    <p>🔑 Contraseña:
+                        ${escapeHtml(client.password || "-")}
+                    </p>
+
+                    <p>📅 Inicio:
+                        ${formatDate(client.start)}
+                    </p>
+
+                    <p>⏰ Vencimiento:
+                        ${formatDate(client.expiration)}
+                    </p>
+
+                    <p class="small">${daysText}</p>
+
+                    <div class="actions">
+
+                        <button
+                            class="btn-green"
+                            onclick="sendWelcome(${client.id})">
+                            WhatsApp
+                        </button>
+
+                        <button
+                            class="btn-yellow"
+                            onclick="editClient(${client.id})">
+                            Editar
+                        </button>
+
+                        <button
+                            class="btn-red"
+                            onclick="deleteClient(${client.id})">
+                            Eliminar
+                        </button>
+
+                    </div>
+                `;
+
+                container.appendChild(div);
+
+            });
+
+        });
+
+}
+
+function updateDashboard(){
+
+    let active=0;
+    let expiring=0;
+    let expired=0;
+
+    clients.forEach(c => {
+
+        const status =
+            getStatus(c.expiration);
+
+        if(status.type==="active") active++;
+
+        if(status.type==="expiring") expiring++;
+
+        if(status.type==="expired") expired++;
+
+    });
+
+    document.getElementById("total")
+        .textContent=clients.length;
+
+    document.getElementById("active")
+        .textContent=active;
+
+    document.getElementById("expiring")
+        .textContent=expiring;
+
+    document.getElementById("expired")
+        .textContent=expired;
+}
+
+function editClient(id){
+
+    const c =
+        clients.find(x => x.id === id);
+
+    if(!c) return;
+
+    document.getElementById("name").value=c.name;
+    document.getElementById("phone").value=c.phone;
+    document.getElementById("service").value=c.service;
+    document.getElementById("username").value=c.username;
+    document.getElementById("password").value=c.password;
+    document.getElementById("start").value=c.start;
+    document.getElementById("expiration").value=c.expiration;
+
+    editingId=id;
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+function deleteClient(id){
+
+    if(!confirm("¿Eliminar este cliente?")){
+        return;
+    }
+
+    clients =
+        clients.filter(c => c.id !== id);
+
+    localStorage.setItem(
+        "lm_clients",
+        JSON.stringify(clients)
+    );
+
+    renderClients();
+
+}
+
+function sendWelcome(id){
+
+    const c =
+        clients.find(x => x.id === id);
+
+    if(!c) return;
+
+    let message =
+        localStorage.getItem("lm_welcome") ||
+        document.getElementById("welcomeMessage").value;
+
+    message =
+        message
+        .replaceAll("{nombre}",c.name)
+        .replaceAll("{servicio}",c.service)
+        .replaceAll("{usuario}",c.username)
+        .replaceAll("{contraseña}",c.password)
+        .replaceAll("{vencimiento}",formatDate(c.expiration));
+
+    openWhatsApp(c.phone,message);
+
+}
+
+function openWhatsApp(phone,message){
+
+    let clean =
+        phone.replace(/\D/g,"");
+
+    if(clean.startsWith("0")){
+        clean="54"+clean.substring(1);
+    }
+
+    if(!clean.startsWith("54")){
+        clean="54"+clean;
+    }
+
+    const url =
+        "https://wa.me/" +
+        clean +
+        "?text=" +
+        encodeURIComponent(message);
+
+    window.open(url,"_blank");
+
+}
+
+function saveMessages(){
+
+    localStorage.setItem(
+        "lm_welcome",
+        document.getElementById("welcomeMessage").value
+    );
+
+    localStorage.setItem(
+        "lm_expiration",
+        document.getElementById("expirationMessage").value
+    );
+
+    alert("Mensajes guardados.");
+
+}
+
+function exportData(){
+
+    const data = {
+        clients,
+        welcome:
+            document.getElementById("welcomeMessage").value,
+        expiration:
+            document.getElementById("expirationMessage").value
+    };
+
+    const blob =
+        new Blob(
+            [JSON.stringify(data,null,2)],
+            {type:"application/json"}
+        );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href=url;
+
+    a.download =
+        "LM_reseller_backup.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+
+function importData(event){
+
+    const file =
+        event.target.files[0];
+
+    if(!file) return;
+
+    const reader =
+        new FileReader();
+
+    reader.onload=function(e){
+
+        try{
+
+            const data =
+                JSON.parse(e.target.result);
+
+            if(Array.isArray(data.clients)){
+                clients=data.clients;
+            }
+
+            if(data.welcome){
+
+                document.getElementById(
+                    "welcomeMessage"
+                ).value=data.welcome;
+
+            }
+
+            if(data.expiration){
+
+                document.getElementById(
+                    "expirationMessage"
+                ).value=data.expiration;
+
+            }
+
+            localStorage.setItem(
+                "lm_clients",
+                JSON.stringify(clients)
+            );
+
+            saveMessages();
+
+            renderClients();
+
+            alert("Copia restaurada correctamente.");
+
+        }catch(error){
+
+            alert("El archivo no es válido.");
+
+        }
+
+    };
+
+    reader.readAsText(file);
+
+}
+
+function formatDate(date){
+
+    if(!date) return "-";
+
+    const parts =
+        date.split("-");
+
+    if(parts.length!==3){
+        return date;
+    }
+
+    return parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0];
+
+}
+
+function escapeHtml(text){
+
+    if(text===undefined || text===null){
+        return "";
+    }
+
+    return String(text)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+function loadMessages(){
+
+    const welcome =
+        localStorage.getItem("lm_welcome");
+
+    const expiration =
+        localStorage.getItem("lm_expiration");
+
+    if(welcome){
+        document.getElementById(
+            "welcomeMessage"
+        ).value=welcome;
+    }
+
+    if(expiration){
+        document.getElementById(
+            "expirationMessage"
+        ).value=expiration;
+    }
+
+}
+
+loadMessages();
+
+renderClients();
+
+</script>
+
+</body>
+</html>
