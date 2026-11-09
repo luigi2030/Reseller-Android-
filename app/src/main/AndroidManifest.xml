@@ -5,10 +5,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:theme="@style/AppTheme"
         android:label="L&M Reseller Panel"
         android:allowBackup="true"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name="com.lm.reseller.MainActivity"
@@ -22,4 +22,5 @@
 
         </activity>
     </application>
+
 </manifest>
